@@ -2,20 +2,40 @@ package com.evanlennick.httpk
 
 class HttpResponse {
 
-    private val rawResponse: String
+    private val statusLine: String
 
-    private val headers: Map<String, String>
+    private val headers: MutableMap<String, String>
 
-    private val body: String //this will probably need to be Byte or something more abstract
+    var body: ByteArray? = null
 
-    constructor(rawResponse: String) {
-        this.rawResponse = rawResponse
-        headers = emptyMap()
-        body = ""
+    constructor(statusLine: String, headers: MutableMap<String, String>) {
+        this.statusLine = statusLine
+        this.headers = headers
+    }
+
+    constructor(statusLine: String, headers: String) {
+        this.statusLine = statusLine
+
+        this.headers = mutableMapOf()
+        val headerLines = headers.split(HttpRequest.EOL)
+
+        for (headerLine in headerLines) {
+            if(!headerLine.contains(":")) {
+                continue
+            }
+            val name = headerLine.substring(0, headerLine.indexOf(":")).trim()
+            val value = headerLine.substring(headerLine.indexOf(":") + 1, headerLine.length).trim()
+            this.headers.put(name, value)
+        }
+
+    }
+
+    fun getContentLength(): String? {
+        return this.headers.get("Content-Length")
     }
 
     override fun toString(): String{
-        return "HttpResponse(rawResponse='$rawResponse', headers=$headers, body='$body')"
+        return "HttpResponse(statusLine='$statusLine', headers=$headers, body='$body')"
     }
 
 }
